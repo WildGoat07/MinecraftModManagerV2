@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="MinecraftModManagerV2.Home"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:MinecraftModManagerV2"
+      mc:Ignorable="d"
+      d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,80,0,0">
+            <WrapPanel Name="mainPannel" />
+        </ScrollViewer>
+        <TextBox Name="searchBar" Height="23" Margin="0,10,10,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" HorizontalAlignment="Right" Width="166" TextChanged="SearchBar_TextChanged" Background="#FF323232" Foreground="White" SelectionBrush="#FF838383" FontFamily="Segoe UI Light" FontSize="14" />
+        <TextBlock HorizontalAlignment="Right" Margin="0,14,181,0" TextWrapping="Wrap" Text="Recherche :" VerticalAlignment="Top" FontFamily="Segoe UI Light" FontSize="14" Foreground="White" TextDecorations="{x:Null}" />
+        <Button HorizontalAlignment="Left" Height="25" Margin="10,10,0,0" VerticalAlignment="Top" Click="Button_Click" ToolTip="Tout activer">
+            <Image Source="enableAll.png" />
+        </Button>
+        <Button HorizontalAlignment="Left" Height="25" Margin="40,10,0,0" VerticalAlignment="Top" Click="Button_Click_1" ToolTip="Tout désactiver">
+            <Image Source="disableAll.png" />
+        </Button>
+        <Button HorizontalAlignment="Left" Height="25" Margin="70,10,0,0" VerticalAlignment="Top" Click="Button_Click_2" ToolTip="Importer un mod">
+            <Image Source="importMod.png" />
+        </Button>
+    </Grid>
+</UserControl>

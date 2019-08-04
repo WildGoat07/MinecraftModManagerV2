@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="MinecraftModManagerV2.ListMod"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MinecraftModManagerV2"
+             mc:Ignorable="d" d:DesignWidth="400" Width="Auto" Height="150" Padding="2" MinWidth="200">
+    <Grid>
+        <Border Name="controlBorder" BorderThickness="1" Background="#FF213244">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="White" Opacity="0.8" />
+            </Border.BorderBrush>
+        </Border>
+        <Image Name="modIcon" Height="40" VerticalAlignment="Top" Margin="10,10,10,0" />
+        <TextBlock  Margin="10,50,10,0" TextWrapping="Wrap" Text="Title" VerticalAlignment="Top" Name="modTitle" TextDecorations="Underline" FontSize="22" Foreground="White" FontFamily="Segoe UI Light" />
+        <TextBlock Margin="10,72,10,0" TextWrapping="Wrap" Text="MC version" VerticalAlignment="Top" Name="modMCVersion" FontSize="16" FontFamily="Segoe UI Light" Foreground="White" />
+        <TextBlock Margin="10,88,14,0" TextWrapping="Wrap" Text="Authors" VerticalAlignment="Top" Name="modAuthors" FontSize="16" Foreground="White" FontFamily="Segoe UI Light" />
+        <Button Name="modButton" Click="ModClicked" Opacity="0" MouseEnter="MouseEntered" MouseLeave="MouseLeaved" PreviewMouseLeftButtonDown="MouseButtonDown" PreviewMouseLeftButtonUp="MouseButtonUp" />
+        <Button Name="status" Content="status" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="73" Click="Status_Checked" Height="30" />
+    </Grid>
+</UserControl>
