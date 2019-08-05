@@ -22,12 +22,6 @@ namespace MinecraftModManagerV2
     /// </summary>
     public partial class ListMod : UserControl
     {
-        #region Private Fields
-
-        private Mod linkedMod;
-
-        #endregion Private Fields
-
         #region Public Constructors
 
         public ListMod(Mod mod)
@@ -51,6 +45,12 @@ namespace MinecraftModManagerV2
         }
 
         #endregion Public Constructors
+
+        #region Public Properties
+
+        public Mod linkedMod { get; private set; }
+
+        #endregion Public Properties
 
         #region Public Methods
 
@@ -76,6 +76,7 @@ namespace MinecraftModManagerV2
 
         private void ModClicked(object sender, RoutedEventArgs e)
         {
+            MainWindow.App.Child = new ModDetail(linkedMod, MainWindow.App.Child);
         }
 
         private void MouseButtonDown(object sender, MouseButtonEventArgs e)

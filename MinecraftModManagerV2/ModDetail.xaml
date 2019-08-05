@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="MinecraftModManagerV2.ModDetail"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MinecraftModManagerV2"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Image Name="modBackground" Stretch="Fill" Opacity="0.5">
+            <Image.Effect>
+                <BlurEffect Radius="60" />
+            </Image.Effect>
+            <Image.OpacityMask>
+                <LinearGradientBrush EndPoint="215,430" StartPoint="215,0" MappingMode="Absolute">
+                    <GradientStop Color="#00000000" Offset="0.03" />
+                    <GradientStop Color="White" Offset="0.12" />
+                </LinearGradientBrush>
+            </Image.OpacityMask>
+        </Image>
+        <Image Margin="0,10,0,0" Name="modIcon" HorizontalAlignment="Left" VerticalAlignment="Top" Source="javaIcon.png" Height="123">
+            <Image.OpacityMask>
+                <LinearGradientBrush EndPoint="215,430" StartPoint="215,0" MappingMode="Absolute">
+                    <GradientStop Color="#00000000" Offset="0.03" />
+                    <GradientStop Color="White" Offset="0.12" />
+                </LinearGradientBrush>
+            </Image.OpacityMask>
+        </Image>
+        <TextBlock Name="modTitle" HorizontalAlignment="Left" Margin="99,14,0,0" TextWrapping="Wrap" Text="modTitle" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="22" FontWeight="Bold" />
+        <Rectangle Height="37" Fill="#01000000" MouseLeftButtonDown="Rectangle_MouseLeftButtonDown" VerticalAlignment="Top" />
+        <Button Name="toggle" Margin="0,10,20,0" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Height="50" Click="Toggle_Click" />
+        <Button Content="← Retour" HorizontalAlignment="Left" Height="27" Margin="10,10,0,0" VerticalAlignment="Top" Width="76" FontFamily="Segoe UI Light" FontSize="14" Foreground="White" Click="Button_Click" />
+        <ScrollViewer Name="viewer" Margin="0,0,0,0">
+            <StackPanel>
+                <TextBlock Name="modid" HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="modid" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+                <TextBlock Name="description" HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="description" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+                <TextBlock Name="version" HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="version" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+                <TextBlock Name="mcversion" HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="mcversion" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+                <TextBlock Name="authors" HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="authors" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+                <StackPanel Margin="5" Orientation="Horizontal">
+                    <TextBlock Text="URL : " FontFamily="Segoe UI Light" FontSize="14" Foreground="White" />
+                    <TextBlock>
+                        <Hyperlink Name="url" Click="Url_Click">
+                            <Hyperlink.Inlines>
+                                <InlineUIContainer>
+                                    <TextBlock Name="urlDisplay" Text="urlDisplay" FontFamily="Segoe UI Light" FontSize="14" />
+                                </InlineUIContainer>
+                            </Hyperlink.Inlines>
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+                <TextBlock HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="Dépendances :" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+                <StackPanel Name="dependencies" Margin="40,5" />
+                <TextBlock Name="credits" HorizontalAlignment="Left" Margin="5" TextWrapping="Wrap" Text="credits" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

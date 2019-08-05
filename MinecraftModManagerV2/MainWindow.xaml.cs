@@ -50,6 +50,8 @@ namespace MinecraftModManagerV2
         public MainWindow()
         {
             App = this;
+            if (!Directory.Exists(CacheDir))
+                Directory.CreateDirectory(CacheDir);
             idleCross = ToBitmapImage(Properties.Resources.idleCross);
             hoverCross = ToBitmapImage(Properties.Resources.hoverCross);
             idleMinimize = ToBitmapImage(Properties.Resources.idleMinimize);
@@ -67,9 +69,40 @@ namespace MinecraftModManagerV2
         public static string DisabledModDir => Path.Combine(MCPath, "disabled mods");
         public static string ModDir => Path.Combine(MCPath, "mods");
 
+        public UIElement Child
+        {
+            get => Placeholder.Children.Count > 0 ? Placeholder.Children[0] : null;
+            set
+            {
+                Placeholder.Children.Clear();
+                Placeholder.Children.Add(value);
+            }
+        }
+
         #endregion Public Properties
 
         #region Public Methods
+
+        public static Bitmap GenerateBackground(Bitmap original)
+        {
+            var result = new Bitmap(1, original.Height);
+            for (int y = 0; y < original.Height; y++)
+            {
+                double r = 0, g = 0, b = 0;
+                double coeff = 0;
+                for (int x = 0; x < original.Width; x++)
+                {
+                    var c = original.GetPixel(x, y);
+                    double perc = c.A / 255.0;
+                    r += c.R * perc;
+                    g += c.G * perc;
+                    b += c.B * perc;
+                    coeff += perc;
+                }
+                result.SetPixel(0, y, System.Drawing.Color.FromArgb(255, (byte)(r / coeff), (byte)(g / coeff), (byte)(b / coeff)));
+            }
+            return result;
+        }
 
         public static Mod LoadMod(Stream fileStream)
         {
@@ -78,6 +111,7 @@ namespace MinecraftModManagerV2
                 //MessageBox.Show("Fichier d'information manquant pour le mod \"" + Path.GetFileName(f) + "\".", "erreur de chargment", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             var mod = new Mod();
+            mod.Dependencies = new List<Dependency>();
             var archive = new ZipArchive(fileStream, ZipArchiveMode.Read);
             var entry = archive.GetEntry("mcmod.info");
             IEnumerable<ZipArchiveEntry> availableInfo;
@@ -127,6 +161,47 @@ namespace MinecraftModManagerV2
                     }
                 }
             }
+            var availableChars = new List<char>() { '-', ':', '@', '[', ']', '(', ')', '.', ',', ';' };
+            for (char i = 'a'; i < 'z'; i++)
+                availableChars.Add(i);
+            for (char i = '0'; i < '9'; i++)
+                availableChars.Add(i);
+            foreach (var entryFile in archive.Entries)
+            {
+                if (Path.GetExtension(entryFile.Name.ToLower()) == ".class")
+                {
+                    string content;
+                    using (var sr = new StreamReader(entryFile.Open(), Encoding.UTF8))
+                        content = sr.ReadToEnd();
+                    int index = 0;
+                    while (index + 15 < content.Length && content.Substring(index, 13) != "dependencies")
+                        index++;
+                    if (index + 15 == content.Length)
+                        continue;
+                    index += 15;
+                    int len = 0;
+                    while (index + len < content.Length && availableChars.Contains(content[index + len]))
+                        len++;
+                    var depStrings = content.Substring(index, len).Split(';');
+                    foreach (var depString in depStrings)
+                    {
+                        var tmp = depString.Split(':');
+                        var prefix = tmp.First();
+                        var tmp2 = tmp.Last();
+                        tmp = tmp2.Split('@');
+                        var modid = tmp.First();
+                        if (modid.Length > 0 && mod.Dependencies.FirstOrDefault((d) => d.modid == modid) == default && modid != "forge")
+                            mod.Dependencies.Add(new Dependency() { modid = modid, required = prefix.Contains("required") });
+                    }
+                }
+            }
+            mod.Dependencies.Sort((left, right) =>
+            {
+                if (left.required != right.required)
+                    return right.required.CompareTo(left.required);
+                else
+                    return left.modid.CompareTo(right.modid);
+            });
             if (!good && fileStream is FileStream file)
             {
                 triggerError(file.Name);
@@ -134,13 +209,16 @@ namespace MinecraftModManagerV2
             }
             try
             {
-                mod.ActiveIcon = ToBitmapImage(new System.Drawing.Bitmap(archive.GetEntry(mod.Infos.logoFile).Open()));
-                mod.InactiveIcon = ToBitmapImage(CreateBWBitmap(new System.Drawing.Bitmap(archive.GetEntry(mod.Infos.logoFile).Open())));
+                Bitmap logo = new Bitmap(archive.GetEntry(mod.Infos.logoFile).Open());
+                mod.ActiveIcon = ToBitmapImage(logo);
+                mod.InactiveIcon = ToBitmapImage(CreateBWBitmap(logo));
+                mod.Background = ToBitmapImage(GenerateBackground(logo));
             }
             catch (Exception)
             {
                 mod.ActiveIcon = DefaultActiveModIcon;
                 mod.InactiveIcon = DefaultInactiveModIcon;
+                mod.Background = null;
             }
             return mod;
         }
@@ -164,6 +242,7 @@ namespace MinecraftModManagerV2
                 mod.Filename = Path.GetFileName(file);
                 var cache = new JSONModCache();
                 cache.infos = mod.Infos;
+                cache.dependencies = mod.Dependencies.ToArray();
                 if (mod.ActiveIcon != DefaultActiveModIcon)
                 {
                     var encoder = new PngBitmapEncoder();
@@ -181,11 +260,21 @@ namespace MinecraftModManagerV2
                         encoder.Save(fileStream);
                     }
                     cache.inactiveIcon = Path.GetFileNameWithoutExtension(mod.Filename) + "_inactiveIcon.png";
+
+                    encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(mod.Background));
+
+                    using (var fileStream = new FileStream(Path.Combine(CacheDir, Path.GetFileNameWithoutExtension(mod.Filename) + "_backgroundImage.png"), FileMode.Create))
+                    {
+                        encoder.Save(fileStream);
+                    }
+                    cache.backgroundImage = Path.GetFileNameWithoutExtension(mod.Filename) + "_backgroundImage.png";
                 }
                 else
                 {
                     cache.activeIcon = "";
                     cache.inactiveIcon = "";
+                    cache.backgroundImage = "";
                 }
                 using (var stream = new StreamWriter(Path.Combine(CacheDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
                 {
@@ -253,6 +342,7 @@ namespace MinecraftModManagerV2
             }
         }
 
+        [STAThread]
         public void ScanMods()
         {
             Placeholder.Children.Clear();
@@ -306,10 +396,9 @@ namespace MinecraftModManagerV2
             mods.Sort((left, right) => left.Infos.name.CompareTo(right.Infos.name));
             Dispatcher.Invoke(() =>
             {
-                Placeholder.Children.Clear();
                 Width = 1100;
                 Height = 700;
-                Placeholder.Children.Add(new Home());
+                Child = new Home();
             });
         }
 

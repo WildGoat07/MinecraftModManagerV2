@@ -9,11 +9,47 @@ using System.Windows.Media.Imaging;
 
 namespace MinecraftModManagerV2
 {
+    public struct Dependency : IEquatable<Dependency>
+    {
+        #region Public Fields
+
+        public string modid;
+        public bool required;
+
+        #endregion Public Fields
+
+        #region Public Methods
+
+        public static bool operator !=(Dependency dependency1, Dependency dependency2)
+        {
+            return !(dependency1 == dependency2);
+        }
+
+        public static bool operator ==(Dependency dependency1, Dependency dependency2)
+        {
+            return dependency1.Equals(dependency2);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Dependency && Equals((Dependency)obj);
+        }
+
+        public bool Equals(Dependency other)
+        {
+            return modid == other.modid;
+        }
+
+        #endregion Public Methods
+    }
+
     public struct JSONModCache
     {
         #region Public Fields
 
         public string activeIcon;
+        public string backgroundImage;
+        public Dependency[] dependencies;
         public string inactiveIcon;
         public ModInfo infos;
 
@@ -48,20 +84,20 @@ namespace MinecraftModManagerV2
         #endregion Public Fields
     }
 
-    public class Mod
+    public class Mod : IEquatable<Mod>
     {
         #region Public Properties
 
         public BitmapImage ActiveIcon { get; set; }
 
+        public BitmapImage Background { get; set; }
+        public List<Dependency> Dependencies { get; set; }
         public bool Enabled { get; set; }
 
         public string Filename { get; set; }
 
         public BitmapImage InactiveIcon { get; set; }
-
         public ModInfo Infos { get; set; }
-
         public string SearchString1 => Infos.name != null ? Infos.name.ToLower() : "";
 
         public string SearchString2
@@ -98,8 +134,26 @@ namespace MinecraftModManagerV2
             }
             else
                 mod.ActiveIcon = MainWindow.DefaultActiveModIcon;
+            if (cache.backgroundImage.Length > 0)
+            {
+                var backgroundPath = Path.Combine(MainWindow.CacheDir, cache.backgroundImage);
+                mod.Background = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(backgroundPath));
+            }
+            else
+                mod.Background = null;
             mod.Infos = cache.infos;
+            mod.Dependencies = new List<Dependency>(cache.dependencies);
             return mod;
+        }
+
+        public static bool operator !=(Mod mod1, Mod mod2)
+        {
+            return !(mod1 == mod2);
+        }
+
+        public static bool operator ==(Mod mod1, Mod mod2)
+        {
+            return EqualityComparer<Mod>.Default.Equals(mod1, mod2);
         }
 
         public void ChangeState()
@@ -108,6 +162,17 @@ namespace MinecraftModManagerV2
             var target = Path.Combine(Enabled ? MainWindow.ModDir : MainWindow.DisabledModDir, Filename);
             if (File.Exists(path))
                 File.Move(path, target);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Mod);
+        }
+
+        public bool Equals(Mod other)
+        {
+            return other != null &&
+                   Filename == other.Filename;
         }
 
         #endregion Public Methods
