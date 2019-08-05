@@ -33,6 +33,8 @@ namespace MinecraftModManagerV2
             canClose = closeAvailable;
             InitializeComponent();
             if (canClose)
+                cross.Source = MainWindow.idleCross;
+            else
                 cross.Source = null;
         }
 

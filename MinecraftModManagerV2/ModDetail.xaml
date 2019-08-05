@@ -43,7 +43,7 @@
                         <Hyperlink Name="url" Click="Url_Click">
                             <Hyperlink.Inlines>
                                 <InlineUIContainer>
-                                    <TextBlock Name="urlDisplay" Text="urlDisplay" FontFamily="Segoe UI Light" FontSize="14" />
+                                    <TextBlock Name="urlDisplay" Text="urlDisplay" FontFamily="Segoe UI Light" FontSize="14" Foreground="#FF74DFFF" />
                                 </InlineUIContainer>
                             </Hyperlink.Inlines>
                         </Hyperlink>

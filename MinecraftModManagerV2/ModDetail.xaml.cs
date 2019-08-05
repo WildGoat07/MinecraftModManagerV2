@@ -67,7 +67,10 @@ namespace MinecraftModManagerV2
                 }
             try
             {
-                url.NavigateUri = new Uri(mod.Infos.url);
+                var urlString = mod.Infos.url;
+                if (urlString[0] != 'h' && urlString[0] != 'w')
+                    urlString = "http://" + urlString;
+                url.NavigateUri = new Uri(urlString);
             }
             catch (Exception)
             {
@@ -130,7 +133,59 @@ namespace MinecraftModManagerV2
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            if (OldPage is ModDetail detail)
+            {
+                detail.dependencies.Children.Clear();
+                if (detail.currentMod.Dependencies.Count > 0)
+                {
+                    foreach (var dep in detail.currentMod.Dependencies)
+                    {
+                        var linkText = new TextBlock();
+                        linkText.FontFamily = new FontFamily("Segoe UI Light");
+                        linkText.FontSize = 14;
+                        var specifiedMod = MainWindow.mods.FirstOrDefault((m) => m.Infos.modid == dep.modid);
+                        if (specifiedMod != null)
+                        {
+                            linkText.Text = specifiedMod.Infos.name;
+                            if (specifiedMod.Enabled)
+                                linkText.Foreground = new SolidColorBrush(Color.FromRgb(50, 255, 100));
+                            else if (dep.required)
+                                linkText.Foreground = new SolidColorBrush(Color.FromRgb(255, 50, 100));
+                            else
+                                linkText.Foreground = new SolidColorBrush(Color.FromRgb(255, 150, 50));
+                            if (dep.required)
+                                linkText.Text += " (requis)";
+                            else
+                                linkText.Text += " (optionel)";
+                            var hyperlink = new Hyperlink();
+                            hyperlink.Inlines.Add(new InlineUIContainer(linkText));
+                            hyperlink.Click += (a, b) =>
+                            {
+                                MainWindow.App.Child = new ModDetail(specifiedMod, detail);
+                            };
+                            detail.dependencies.Children.Add(new TextBlock(hyperlink));
+                        }
+                        else
+                        {
+                            linkText.Text = dep.modid;
+                            if (dep.required)
+                            {
+                                linkText.Foreground = new SolidColorBrush(Color.FromRgb(255, 50, 100));
+                                linkText.Text += " (requis)";
+                            }
+                            else
+                            {
+                                linkText.Foreground = new SolidColorBrush(Color.FromRgb(255, 150, 50));
+                                linkText.Text += " (optionel)";
+                            }
+                            linkText.ToolTip = "Le mod manquant n'a pas été trouvé dans les mods disponibles";
+                            detail.dependencies.Children.Add(linkText);
+                        }
+                    }
+                }
+            }
             MainWindow.App.Child = OldPage;
+            Home.GlobalHome.updateList();
         }
 
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

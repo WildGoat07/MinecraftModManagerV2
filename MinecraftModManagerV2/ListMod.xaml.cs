@@ -76,7 +76,7 @@ namespace MinecraftModManagerV2
 
         private void ModClicked(object sender, RoutedEventArgs e)
         {
-            MainWindow.App.Child = new ModDetail(linkedMod, MainWindow.App.Child);
+            MainWindow.App.Child = new ModDetail(linkedMod, Home.GlobalHome);
         }
 
         private void MouseButtonDown(object sender, MouseButtonEventArgs e)
@@ -104,6 +104,7 @@ namespace MinecraftModManagerV2
             linkedMod.Enabled = !linkedMod.Enabled;
             linkedMod.ChangeState();
             UpdateStatus();
+            Home.GlobalHome.OperateView(this);
         }
 
         #endregion Private Methods

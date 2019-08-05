@@ -21,5 +21,18 @@
         <Button HorizontalAlignment="Left" Height="25" Margin="70,10,0,0" VerticalAlignment="Top" Click="Button_Click_2" ToolTip="Importer un mod">
             <Image Source="importMod.png" />
         </Button>
+        <ComboBox Name="profilSelector" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" MinWidth="150" SelectionChanged="ProfilSelector_SelectionChanged" FontFamily="Segoe UI Light" FontSize="14" />
+        <ComboBox Name="viewSelector" SelectedIndex="0" HorizontalAlignment="Left" Margin="269,40,0,0" VerticalAlignment="Top" MinWidth="150" SelectionChanged="ViewSelector_SelectionChanged" FontFamily="Segoe UI Light" FontSize="14">
+            <ComboBoxItem Content="Tous les mods" />
+            <ComboBoxItem Content="Mods actifs" />
+            <ComboBoxItem Content="Mods inactifs" />
+        </ComboBox>
+        <Button HorizontalAlignment="Left" Height="25" Margin="165,40,0,0" VerticalAlignment="Top" ToolTip="Enregistrer un profil" Click="Button_Click_3">
+            <Image Source="applyChanges.png" />
+        </Button>
+        <Button Height="25" Margin="0,40,10,0" VerticalAlignment="Top" ToolTip="Paramètres" HorizontalAlignment="Right" Width="25" Click="Button_Click_4">
+            <Image Source="options.png" />
+        </Button>
+        <TextBlock HorizontalAlignment="Left" Margin="212,43,0,0" TextWrapping="Wrap" Text="Afficher :" VerticalAlignment="Top" Foreground="White" FontFamily="Segoe UI Light" FontSize="14" />
     </Grid>
 </UserControl>

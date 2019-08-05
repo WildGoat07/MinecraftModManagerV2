@@ -1,0 +1,111 @@
+﻿<UserControl x:Class="MinecraftModManagerV2.Options"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:MinecraftModManagerV2"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <TabControl Margin="0, 20, 0, 0" BorderThickness="0" Background="#00000000">
+        <TabControl.Resources>
+            <Style TargetType="TabItem">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TabItem">
+                            <Grid Name="Panel">
+                                <ContentPresenter x:Name="ContentSite"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        ContentSource="Header"
+                                        Margin="10,2" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Panel" Property="Background">
+                                        <Setter.Value>
+                                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                <GradientStop Color="#CC1C76AC" Offset="0" />
+                                                <GradientStop Color="#FF1C76AC" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="False">
+                                    <Setter TargetName="Panel" Property="Background">
+                                        <Setter.Value>
+                                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                <GradientStop Color="#CC425A68" Offset="0" />
+                                                <GradientStop Color="#FF425A68" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </TabControl.Resources>
+        <TabItem Header="Minecraft Mod Manager" Foreground="White" FontFamily="Segoe UI Light" FontSize="14">
+            <ScrollViewer>
+                <Grid>
+                    <TextBlock Text="Dossier Minecraft :" Margin="5" />
+                    <Grid>
+                        <RadioButton Name="defaultMCDir" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="119,9,0,0" Checked="DefaultMCDir_Checked">
+                            <TextBlock Text="Par défaut (Appdata)" />
+                        </RadioButton>
+                        <RadioButton Name="customMCDir" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="119,32,0,0" Checked="CustomMCDir_Checked">
+                            <TextBlock Text="Personnalisé :" />
+                        </RadioButton>
+                        <Button Content="Parcourir" Foreground="#FFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" Width="117" Height="18" Margin="222,32,0,0" Click="Button_Click" />
+                        <TextBox Name="mCDir" IsReadOnly="True" Margin="344,29,0,0" Background="#FF323232" Foreground="White" SelectionBrush="#FF838383" MinWidth="150" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    </Grid>
+                    <Button Foreground="#FFFFFF" Name="buffCleaner" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,62,0,0" Click="BuffCleaner_Click" />
+                </Grid>
+            </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Profils" Foreground="White" FontFamily="Segoe UI Light" FontSize="14">
+            <Grid>
+                <ListBox Name="profilsList" Background="Transparent" Margin="0,0,0,40" BorderBrush="#FFDEDEDE" SelectionChanged="ProfilsList_SelectionChanged" Foreground="White" />
+                <Button Name="deleteButton" IsEnabled="False" Content="Supprimer" Margin="0,0,10,10" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="200" Foreground="#FFFF5656" Click="DeleteButton_Click" />
+            </Grid>
+        </TabItem>
+        <TabItem Header="A propos" Foreground="White" FontFamily="Segoe UI Light" FontSize="14">
+            <ScrollViewer>
+                <Grid>
+                    <TextBlock Name="assemblyVersion" TextWrapping="Wrap" Text="version" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" />
+                    <TextBlock TextWrapping="Wrap" Text="Développeur :" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,34,0,0" />
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="97,34,0,0">
+                    <Hyperlink NavigateUri="https://github.com/WildGoat07" Click="Hyperlink_Click">
+                        <TextBlock TextWrapping="Wrap" Text="Nathan HANEN" Foreground="#FF52E7FF" />
+                    </Hyperlink>
+                </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Text="Contact :" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,58,0,0" />
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="68,58,0,0">
+                    <Hyperlink NavigateUri="mailto:hanen.nathan@gmail.com" Click="Hyperlink_Click">
+                        <TextBlock TextWrapping="Wrap" Text="mail" Foreground="#FF52E7FF" />
+                    </Hyperlink>
+                </TextBlock>
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="68,58,0,0">
+                    <Hyperlink NavigateUri="mailto:hanen.nathan@gmail.com" Click="Hyperlink_Click">
+                        <TextBlock TextWrapping="Wrap" Text="mail" Foreground="#FF52E7FF" />
+                    </Hyperlink>
+                </TextBlock>
+                    <TextBlock Text="Discord : WildGoat#0001" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="68,82,0,0" />
+                    <TextBlock TextWrapping="Wrap" Text="Source :" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,106,0,0" />
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="62,106,0,0">
+                    <Hyperlink NavigateUri="https://github.com/WildGoat07/MinecraftModManagerV2" Click="Hyperlink_Click">
+                        <TextBlock TextWrapping="Wrap" Text="https://github.com/WildGoat07/MinecraftModManagerV2" Foreground="#FF52E7FF" />
+                    </Hyperlink>
+                </TextBlock>
+                    <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,130,0,0">
+                    <Hyperlink NavigateUri="license.txt" Click="Hyperlink_Click">
+                        <TextBlock TextWrapping="Wrap" Text="License MIT" Foreground="#FF52E7FF" />
+                    </Hyperlink>
+                </TextBlock>
+                </Grid>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</UserControl>

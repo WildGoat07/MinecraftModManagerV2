@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MinecraftModManagerV2"
         mc:Ignorable="d"
+        Icon="mcmmIcon.ico"
         Title="Minecraft Mod Manager 2" Height="400" Width="600" Closing="windowClosing" ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen" MinWidth="350" MinHeight="250" WindowStyle="None" AllowsTransparency="True" Background="{x:Null}">
     <Window.Effect>
         <DropShadowEffect />

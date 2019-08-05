@@ -43,19 +43,6 @@ namespace MinecraftModManagerV2
         #endregion Public Methods
     }
 
-    public struct JSONModCache
-    {
-        #region Public Fields
-
-        public string activeIcon;
-        public string backgroundImage;
-        public Dependency[] dependencies;
-        public string inactiveIcon;
-        public ModInfo infos;
-
-        #endregion Public Fields
-    }
-
     public struct ModInfo
     {
         #region Public Fields
@@ -117,32 +104,32 @@ namespace MinecraftModManagerV2
 
         #region Public Methods
 
-        public static Mod CreateFromJSON(JSONModCache cache)
+        public static Mod CreateFromJSON(JSONModBuffer buff)
         {
             var mod = new Mod();
-            if (cache.inactiveIcon.Length > 0)
+            if (buff.inactiveIcon.Length > 0)
             {
-                var iconPath = Path.Combine(MainWindow.CacheDir, cache.inactiveIcon);
+                var iconPath = Path.Combine(MainWindow.BufferDir, buff.inactiveIcon);
                 mod.InactiveIcon = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(iconPath));
             }
             else
                 mod.InactiveIcon = MainWindow.DefaultInactiveModIcon;
-            if (cache.activeIcon.Length > 0)
+            if (buff.activeIcon.Length > 0)
             {
-                var iconPath = Path.Combine(MainWindow.CacheDir, cache.activeIcon);
+                var iconPath = Path.Combine(MainWindow.BufferDir, buff.activeIcon);
                 mod.ActiveIcon = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(iconPath));
             }
             else
                 mod.ActiveIcon = MainWindow.DefaultActiveModIcon;
-            if (cache.backgroundImage.Length > 0)
+            if (buff.backgroundImage.Length > 0)
             {
-                var backgroundPath = Path.Combine(MainWindow.CacheDir, cache.backgroundImage);
+                var backgroundPath = Path.Combine(MainWindow.BufferDir, buff.backgroundImage);
                 mod.Background = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(backgroundPath));
             }
             else
                 mod.Background = null;
-            mod.Infos = cache.infos;
-            mod.Dependencies = new List<Dependency>(cache.dependencies);
+            mod.Infos = buff.infos;
+            mod.Dependencies = new List<Dependency>(buff.dependencies);
             return mod;
         }
 

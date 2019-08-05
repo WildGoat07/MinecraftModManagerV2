@@ -32,15 +32,19 @@ namespace MinecraftModManagerV2
         #region Public Fields
 
         public static MainWindow App;
-        public static string CacheDir = "where the magic goes";
+        public static string BufferDir = "where the magic goes";
         public static BitmapImage DefaultActiveModIcon;
         public static BitmapImage DefaultInactiveModIcon;
         public static BitmapImage hoverCross;
         public static BitmapImage hoverMinimize;
         public static BitmapImage idleCross;
         public static BitmapImage idleMinimize;
-        public static string MCPath = "C:/Users/Nathan/AppData/Roaming/.minecraft";
+        public static string MCPath;
         public static List<Mod> mods;
+        public static string PrefDir = "preferencies.json";
+        public static Preferencies Preferencies;
+        public static string ProfilFile = "profils.json";
+        public static List<Profil> profils;
         public static string SelectedMCVersion = "1.12.2";
 
         #endregion Public Fields
@@ -49,9 +53,10 @@ namespace MinecraftModManagerV2
 
         public MainWindow()
         {
+            LoadPreferencies();
             App = this;
-            if (!Directory.Exists(CacheDir))
-                Directory.CreateDirectory(CacheDir);
+            if (!Directory.Exists(BufferDir))
+                Directory.CreateDirectory(BufferDir);
             idleCross = ToBitmapImage(Properties.Resources.idleCross);
             hoverCross = ToBitmapImage(Properties.Resources.hoverCross);
             idleMinimize = ToBitmapImage(Properties.Resources.idleMinimize);
@@ -60,6 +65,8 @@ namespace MinecraftModManagerV2
             DefaultActiveModIcon = ToBitmapImage(Properties.Resources.javaIcon);
             DefaultInactiveModIcon = ToBitmapImage(CreateBWBitmap(Properties.Resources.javaIcon));
             InitializeComponent();
+            ScanMods();
+            LoadProfils();
         }
 
         #endregion Public Constructors
@@ -67,6 +74,7 @@ namespace MinecraftModManagerV2
         #region Public Properties
 
         public static string DisabledModDir => Path.Combine(MCPath, "disabled mods");
+
         public static string ModDir => Path.Combine(MCPath, "mods");
 
         public UIElement Child
@@ -140,7 +148,7 @@ namespace MinecraftModManagerV2
                                 if (res != null)
                                 {
                                     mod.Infos = Newtonsoft.Json.JsonConvert.DeserializeObject<ModInfo>(
-                                        Newtonsoft.Json.JsonConvert.SerializeObject(res));
+                                        Newtonsoft.Json.JsonConvert.SerializeObject(res, Newtonsoft.Json.Formatting.Indented));
                                     good = true;
                                     break;
                                 }
@@ -190,7 +198,7 @@ namespace MinecraftModManagerV2
                         var tmp2 = tmp.Last();
                         tmp = tmp2.Split('@');
                         var modid = tmp.First();
-                        if (modid.Length > 0 && mod.Dependencies.FirstOrDefault((d) => d.modid == modid) == default && modid != "forge")
+                        if (modid.Length > 0 && mod.Dependencies.FirstOrDefault((d) => d.modid == modid) == default && modid != "forge" && modid.All((c) => c >= 'a' && c <= 'z'))
                             mod.Dependencies.Add(new Dependency() { modid = modid, required = prefix.Contains("required") });
                     }
                 }
@@ -225,12 +233,12 @@ namespace MinecraftModManagerV2
 
         public static Mod LoadModFromFile(string file)
         {
-            var jsonFile = Directory.GetFiles(CacheDir).FirstOrDefault((f) => Path.GetFileName(f) == Path.GetFileNameWithoutExtension(file) + ".json");
+            var jsonFile = Directory.GetFiles(BufferDir).FirstOrDefault((f) => Path.GetFileName(f) == Path.GetFileNameWithoutExtension(file) + ".json");
             if (jsonFile != null)
             {
                 try
                 {
-                    var modInfos = Newtonsoft.Json.JsonConvert.DeserializeObject<JSONModCache>(new StreamReader(jsonFile).ReadToEnd());
+                    var modInfos = Newtonsoft.Json.JsonConvert.DeserializeObject<JSONModBuffer>(new StreamReader(jsonFile).ReadToEnd());
                     var mod = Mod.CreateFromJSON(modInfos);
                     mod.Filename = Path.GetFileName(file);
                     return mod;
@@ -240,47 +248,68 @@ namespace MinecraftModManagerV2
             {
                 var mod = LoadMod(new FileStream(file, FileMode.Open, FileAccess.Read));
                 mod.Filename = Path.GetFileName(file);
-                var cache = new JSONModCache();
-                cache.infos = mod.Infos;
-                cache.dependencies = mod.Dependencies.ToArray();
+                var buff = new JSONModBuffer();
+                buff.infos = mod.Infos;
+                buff.dependencies = mod.Dependencies.ToArray();
                 if (mod.ActiveIcon != DefaultActiveModIcon)
                 {
                     var encoder = new PngBitmapEncoder();
                     encoder.Frames.Add(BitmapFrame.Create(mod.ActiveIcon));
-                    using (var fileStream = new FileStream(Path.Combine(CacheDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".png"), FileMode.Create))
+                    using (var fileStream = new FileStream(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".png"), FileMode.Create))
                     {
                         encoder.Save(fileStream);
                     }
-                    cache.activeIcon = Path.GetFileNameWithoutExtension(mod.Filename) + ".png";
+                    buff.activeIcon = Path.GetFileNameWithoutExtension(mod.Filename) + ".png";
                     encoder = new PngBitmapEncoder();
                     encoder.Frames.Add(BitmapFrame.Create(mod.InactiveIcon));
 
-                    using (var fileStream = new FileStream(Path.Combine(CacheDir, Path.GetFileNameWithoutExtension(mod.Filename) + "_inactiveIcon.png"), FileMode.Create))
+                    using (var fileStream = new FileStream(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + "_inactiveIcon.png"), FileMode.Create))
                     {
                         encoder.Save(fileStream);
                     }
-                    cache.inactiveIcon = Path.GetFileNameWithoutExtension(mod.Filename) + "_inactiveIcon.png";
+                    buff.inactiveIcon = Path.GetFileNameWithoutExtension(mod.Filename) + "_inactiveIcon.png";
 
                     encoder = new PngBitmapEncoder();
                     encoder.Frames.Add(BitmapFrame.Create(mod.Background));
 
-                    using (var fileStream = new FileStream(Path.Combine(CacheDir, Path.GetFileNameWithoutExtension(mod.Filename) + "_backgroundImage.png"), FileMode.Create))
+                    using (var fileStream = new FileStream(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + "_backgroundImage.png"), FileMode.Create))
                     {
                         encoder.Save(fileStream);
                     }
-                    cache.backgroundImage = Path.GetFileNameWithoutExtension(mod.Filename) + "_backgroundImage.png";
+                    buff.backgroundImage = Path.GetFileNameWithoutExtension(mod.Filename) + "_backgroundImage.png";
                 }
                 else
                 {
-                    cache.activeIcon = "";
-                    cache.inactiveIcon = "";
-                    cache.backgroundImage = "";
+                    buff.activeIcon = "";
+                    buff.inactiveIcon = "";
+                    buff.backgroundImage = "";
                 }
-                using (var stream = new StreamWriter(Path.Combine(CacheDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
+                using (var stream = new StreamWriter(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
                 {
-                    stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(cache));
+                    stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(buff, Newtonsoft.Json.Formatting.Indented));
                 }
                 return mod;
+            }
+        }
+
+        public static void LoadProfils()
+        {
+            profils = new List<Profil>();
+            if (File.Exists(ProfilFile))
+            {
+                Profil[] pr;
+                using (var stream = new StreamReader(ProfilFile))
+                {
+                    pr = Newtonsoft.Json.JsonConvert.DeserializeObject<Profil[]>(stream.ReadToEnd());
+                }
+                profils.AddRange(pr);
+            }
+            else
+            {
+                using (var stream = new StreamWriter(ProfilFile))
+                {
+                    stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(new Profil[0], Newtonsoft.Json.Formatting.Indented));
+                }
             }
         }
 
@@ -340,6 +369,67 @@ namespace MinecraftModManagerV2
 
                 return bitmapImage;
             }
+        }
+
+        public void LoadPreferencies()
+        {
+            if (File.Exists(PrefDir))
+            {
+                using (var sr = new StreamReader(PrefDir))
+                {
+                    Preferencies = Newtonsoft.Json.JsonConvert.DeserializeObject<Preferencies>(sr.ReadToEnd());
+                }
+            }
+            else
+            {
+                Preferencies = new Preferencies();
+                Preferencies.customDir = false;
+                using (var sw = new StreamWriter(PrefDir))
+                {
+                    sw.Write(Newtonsoft.Json.JsonConvert.SerializeObject(Preferencies, Newtonsoft.Json.Formatting.Indented));
+                }
+            }
+            if (Preferencies.customDir)
+                MCPath = Preferencies.dirString;
+            else
+                MCPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
+            if (!Directory.Exists(MCPath))
+            {
+                MCPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
+                if (!Directory.Exists(MCPath))
+                {
+                    var dialog = new BaseModel();
+                    var warning = new WarningControl("Le chemin vers le dossier Minecraft est incorrect, veuillez spécifier le chemin", dialog);
+                    dialog.Child = warning;
+                    if (!dialog.ShowDialog().Value)
+                        Environment.Exit(0);
+                    var dirDialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+                    dirDialog.Description = "Selectionnez le répertoire Minecraft";
+                    if (dirDialog.ShowDialog().Value)
+                    {
+                        Preferencies.customDir = true;
+                        Preferencies.dirString = dirDialog.SelectedPath;
+                        using (var sw = new StreamWriter(PrefDir))
+                        {
+                            sw.Write(Newtonsoft.Json.JsonConvert.SerializeObject(Preferencies, Newtonsoft.Json.Formatting.Indented));
+                        }
+                    }
+                    else
+                        Environment.Exit(0);
+                }
+                else
+                {
+                    Preferencies.customDir = false;
+                    using (var sw = new StreamWriter(PrefDir))
+                    {
+                        sw.Write(Newtonsoft.Json.JsonConvert.SerializeObject(Preferencies, Newtonsoft.Json.Formatting.Indented));
+                    }
+                }
+            }
+            if (!Directory.Exists(ModDir))
+                Directory.CreateDirectory(ModDir);
+            if (!Directory.Exists(DisabledModDir))
+                Directory.CreateDirectory(DisabledModDir);
         }
 
         [STAThread]
@@ -442,11 +532,6 @@ namespace MinecraftModManagerV2
                     WindowState = WindowState.Normal;
             }
             DragMove();
-        }
-
-        private void Window_Initialized(object sender, EventArgs e)
-        {
-            ScanMods();
         }
 
         #endregion Private Methods
