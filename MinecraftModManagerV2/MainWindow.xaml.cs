@@ -54,14 +54,146 @@ namespace MinecraftModManagerV2
         public MainWindow()
         {
             LoadPreferencies();
-            App = this;
+            mods = new List<Mod>();
             if (!Directory.Exists(BufferDir))
                 Directory.CreateDirectory(BufferDir);
+            {
+                var lines = Environment.GetCommandLineArgs();
+                if (lines.Length > 1)
+                {
+                    var command = lines[1];
+                    if (command == "help" || command == "?")
+                    {
+                        Console.WriteLine(
+@"Usage : <exe> [loadprofil|loadmods|disable|enable|help]
+Commands :
+    loadprofil / lp : loadprofil <profil name>                  Loads the given profil
+    loadmods / lm : loadmods <modid> <modid> <modid> ...        Loads the given mods. Giving no mods does the same thing as ""disable""
+    disable / d : disable                                       Disable all mods
+    enable / e : enable                                         Enable all mods
+    help / ? : help                                             Displays this section
+");
+                        Environment.Exit(0);
+                    }
+                    else if (command == "loadprofil" || command == "lp")
+                    {
+                        if (lines.Length > 2)
+                        {
+                            var profilString = lines[2];
+                            LoadProfils();
+                            var profil = profils.Find((p) => p.name == profilString);
+                            if (profil.name == null)
+                            {
+                                Console.WriteLine("The profil \"" + profilString + "\" does not exist.");
+                                Environment.Exit(0);
+                            }
+                            _scan(false);
+                            int added = 0, removed = 0;
+                            foreach (var mod in mods)
+                            {
+                                if (profil.modids.Contains(mod.Infos.modid))
+                                {
+                                    if (!mod.Enabled)
+                                    {
+                                        added++;
+                                        mod.Enabled = true;
+                                        mod.ChangeState();
+                                    }
+                                }
+                                else
+                                {
+                                    if (mod.Enabled)
+                                    {
+                                        removed++;
+                                        mod.Enabled = false;
+                                        mod.ChangeState();
+                                    }
+                                }
+                            }
+                            Console.WriteLine("Successfully applied the profil.\n\tMods enabled : " + added + "\n\tMods removed : " + removed);
+                            Environment.Exit(0);
+                        }
+                        else
+                        {
+                            Console.WriteLine("No profil given. Type help for the help section.");
+                            Environment.Exit(0);
+                        }
+                    }
+                    else if (command == "loadmods" || command == "lm")
+                    {
+                        var modsString = new List<string>();
+                        for (int i = 2; i < lines.Length; i++)
+                            modsString.Add(lines[i]);
+                        _scan(false);
+                        int added = 0, removed = 0;
+                        foreach (var mod in mods)
+                        {
+                            if (modsString.Contains(mod.Infos.modid))
+                            {
+                                if (!mod.Enabled)
+                                {
+                                    added++;
+                                    mod.Enabled = true;
+                                    mod.ChangeState();
+                                }
+                            }
+                            else
+                            {
+                                if (mod.Enabled)
+                                {
+                                    removed++;
+                                    mod.Enabled = false;
+                                    mod.ChangeState();
+                                }
+                            }
+                        }
+                        Console.WriteLine("Successfully enabled the mods.\n\tMods enabled : " + added + "\n\tMods removed : " + removed);
+                        Environment.Exit(0);
+                    }
+                    else if (command == "enable" || command == "e")
+                    {
+                        _scan(false);
+                        int added = 0;
+                        foreach (var mod in mods)
+                        {
+                            if (!mod.Enabled)
+                            {
+                                added++;
+                                mod.Enabled = true;
+                                mod.ChangeState();
+                            }
+                        }
+                        Console.WriteLine("Successfully enabled all the mods.\n\tMods enabled : " + added);
+                        Environment.Exit(0);
+                    }
+                    else if (command == "disabled" || command == "d")
+                    {
+                        _scan(false);
+                        int removed = 0;
+                        foreach (var mod in mods)
+                        {
+                            if (mod.Enabled)
+                            {
+                                removed++;
+                                mod.Enabled = false;
+                                mod.ChangeState();
+                            }
+                        }
+                        Console.WriteLine("Successfully disabled all the mods.\n\tMods disabled : " + removed);
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Unknown command \"" + command + "\" type help for the help section.");
+                        Environment.Exit(0);
+                    }
+                }
+            }
+            App = this;
             idleCross = ToBitmapImage(Properties.Resources.idleCross);
             hoverCross = ToBitmapImage(Properties.Resources.hoverCross);
             idleMinimize = ToBitmapImage(Properties.Resources.idleMinimize);
             hoverMinimize = ToBitmapImage(Properties.Resources.hoverMinimize);
-            mods = new List<Mod>();
             DefaultActiveModIcon = ToBitmapImage(Properties.Resources.javaIcon);
             DefaultInactiveModIcon = ToBitmapImage(CreateBWBitmap(Properties.Resources.javaIcon));
             InitializeComponent();
@@ -112,7 +244,7 @@ namespace MinecraftModManagerV2
             return result;
         }
 
-        public static Mod LoadMod(Stream fileStream)
+        public static Mod LoadMod(Stream fileStream, bool handleGraphics = true)
         {
             void triggerError(string f)
             {
@@ -215,23 +347,26 @@ namespace MinecraftModManagerV2
                 triggerError(file.Name);
                 mod.Infos = new ModInfo() { name = Path.GetFileNameWithoutExtension(file.Name), modid = "//" + Path.GetFileNameWithoutExtension(file.Name) };
             }
-            try
+            if (handleGraphics)
             {
-                Bitmap logo = new Bitmap(archive.GetEntry(mod.Infos.logoFile).Open());
-                mod.ActiveIcon = ToBitmapImage(logo);
-                mod.InactiveIcon = ToBitmapImage(CreateBWBitmap(logo));
-                mod.Background = ToBitmapImage(GenerateBackground(logo));
-            }
-            catch (Exception)
-            {
-                mod.ActiveIcon = DefaultActiveModIcon;
-                mod.InactiveIcon = DefaultInactiveModIcon;
-                mod.Background = null;
+                try
+                {
+                    Bitmap logo = new Bitmap(archive.GetEntry(mod.Infos.logoFile).Open());
+                    mod.ActiveIcon = ToBitmapImage(logo);
+                    mod.InactiveIcon = ToBitmapImage(CreateBWBitmap(logo));
+                    mod.Background = ToBitmapImage(GenerateBackground(logo));
+                }
+                catch (Exception)
+                {
+                    mod.ActiveIcon = DefaultActiveModIcon;
+                    mod.InactiveIcon = DefaultInactiveModIcon;
+                    mod.Background = null;
+                }
             }
             return mod;
         }
 
-        public static Mod LoadModFromFile(string file)
+        public static Mod LoadModFromFile(string file, bool handleGraphics = true)
         {
             var jsonFile = Directory.GetFiles(BufferDir).FirstOrDefault((f) => Path.GetFileName(f) == Path.GetFileNameWithoutExtension(file) + ".json");
             if (jsonFile != null)
@@ -239,7 +374,7 @@ namespace MinecraftModManagerV2
                 try
                 {
                     var modInfos = Newtonsoft.Json.JsonConvert.DeserializeObject<JSONModBuffer>(new StreamReader(jsonFile).ReadToEnd());
-                    var mod = Mod.CreateFromJSON(modInfos);
+                    var mod = Mod.CreateFromJSON(modInfos, handleGraphics);
                     mod.Filename = Path.GetFileName(file);
                     return mod;
                 }
@@ -251,7 +386,7 @@ namespace MinecraftModManagerV2
                 var buff = new JSONModBuffer();
                 buff.infos = mod.Infos;
                 buff.dependencies = mod.Dependencies.ToArray();
-                if (mod.ActiveIcon != DefaultActiveModIcon)
+                if (mod.ActiveIcon != DefaultActiveModIcon && handleGraphics)
                 {
                     var encoder = new PngBitmapEncoder();
                     encoder.Frames.Add(BitmapFrame.Create(mod.ActiveIcon));
@@ -284,10 +419,11 @@ namespace MinecraftModManagerV2
                     buff.inactiveIcon = "";
                     buff.backgroundImage = "";
                 }
-                using (var stream = new StreamWriter(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
-                {
-                    stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(buff, Newtonsoft.Json.Formatting.Indented));
-                }
+                if (handleGraphics)
+                    using (var stream = new StreamWriter(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
+                    {
+                        stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(buff, Newtonsoft.Json.Formatting.Indented));
+                    }
                 return mod;
             }
         }
@@ -460,7 +596,7 @@ namespace MinecraftModManagerV2
             return BWbase;
         }
 
-        private void _scan()
+        private void _scan(bool handleGraphics)
         {
             int maxItems = Directory.GetFiles(ModDir).Where((file) => Path.GetExtension(file) == ".jar" || Path.GetExtension(file) == ".zip").Count() + Directory.GetFiles(DisabledModDir).Where((file) => Path.GetExtension(file) == ".jar" || Path.GetExtension(file) == ".zip").Count();
 
@@ -469,8 +605,11 @@ namespace MinecraftModManagerV2
             {
                 foreach (var file in Directory.GetFiles(dir))
                 {
-                    Dispatcher.Invoke(() => ((LoadingPage)Placeholder.Children[0]).ChangeFill((float)currentItem / maxItems));
-                    Dispatcher.Invoke(() => ((LoadingPage)Placeholder.Children[0]).ChangeDisplayer("Chargement de : " + Path.GetFileNameWithoutExtension(file) + "..."));
+                    if (handleGraphics)
+                    {
+                        Dispatcher.Invoke(() => ((LoadingPage)Placeholder.Children[0]).ChangeFill((float)currentItem / maxItems));
+                        Dispatcher.Invoke(() => ((LoadingPage)Placeholder.Children[0]).ChangeDisplayer("Chargement de : " + Path.GetFileNameWithoutExtension(file) + "..."));
+                    }
                     if (Path.GetExtension(file) == ".jar" || Path.GetExtension(file) == ".zip")
                     {
                         var mod = LoadModFromFile(file);
@@ -484,13 +623,16 @@ namespace MinecraftModManagerV2
             scanFiles(ModDir, true);
             scanFiles(DisabledModDir, false);
             mods.Sort((left, right) => left.Infos.name.CompareTo(right.Infos.name));
-            Dispatcher.Invoke(() =>
-            {
-                Width = 1100;
-                Height = 700;
-                Child = new Home();
-            });
+            if (handleGraphics)
+                Dispatcher.Invoke(() =>
+                {
+                    Width = 1100;
+                    Height = 700;
+                    Child = new Home();
+                });
         }
+
+        private void _scan() => _scan(true);
 
         private void Cross_MouseEnter(object sender, MouseEventArgs e)
         {

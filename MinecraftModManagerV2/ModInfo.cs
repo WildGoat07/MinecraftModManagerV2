@@ -104,30 +104,33 @@ namespace MinecraftModManagerV2
 
         #region Public Methods
 
-        public static Mod CreateFromJSON(JSONModBuffer buff)
+        public static Mod CreateFromJSON(JSONModBuffer buff, bool handleGraphics = true)
         {
             var mod = new Mod();
-            if (buff.inactiveIcon.Length > 0)
+            if (handleGraphics)
             {
-                var iconPath = Path.Combine(MainWindow.BufferDir, buff.inactiveIcon);
-                mod.InactiveIcon = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(iconPath));
+                if (buff.inactiveIcon.Length > 0)
+                {
+                    var iconPath = Path.Combine(MainWindow.BufferDir, buff.inactiveIcon);
+                    mod.InactiveIcon = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(iconPath));
+                }
+                else
+                    mod.InactiveIcon = MainWindow.DefaultInactiveModIcon;
+                if (buff.activeIcon.Length > 0)
+                {
+                    var iconPath = Path.Combine(MainWindow.BufferDir, buff.activeIcon);
+                    mod.ActiveIcon = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(iconPath));
+                }
+                else
+                    mod.ActiveIcon = MainWindow.DefaultActiveModIcon;
+                if (buff.backgroundImage.Length > 0)
+                {
+                    var backgroundPath = Path.Combine(MainWindow.BufferDir, buff.backgroundImage);
+                    mod.Background = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(backgroundPath));
+                }
+                else
+                    mod.Background = null;
             }
-            else
-                mod.InactiveIcon = MainWindow.DefaultInactiveModIcon;
-            if (buff.activeIcon.Length > 0)
-            {
-                var iconPath = Path.Combine(MainWindow.BufferDir, buff.activeIcon);
-                mod.ActiveIcon = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(iconPath));
-            }
-            else
-                mod.ActiveIcon = MainWindow.DefaultActiveModIcon;
-            if (buff.backgroundImage.Length > 0)
-            {
-                var backgroundPath = Path.Combine(MainWindow.BufferDir, buff.backgroundImage);
-                mod.Background = MainWindow.ToBitmapImage(new System.Drawing.Bitmap(backgroundPath));
-            }
-            else
-                mod.Background = null;
             mod.Infos = buff.infos;
             mod.Dependencies = new List<Dependency>(buff.dependencies);
             return mod;
