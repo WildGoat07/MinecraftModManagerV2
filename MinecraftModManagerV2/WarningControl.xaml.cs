@@ -30,8 +30,11 @@ namespace MinecraftModManagerV2
 
         public WarningControl(string text, Window parent)
         {
-            app = parent;
             InitializeComponent();
+            app = parent;
+            parent.Height = 0;
+            parent.Width = 300;
+            textDisplay.Text = text;
         }
 
         #endregion Public Constructors
