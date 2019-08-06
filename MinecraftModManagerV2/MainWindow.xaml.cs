@@ -605,10 +605,12 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
                         Environment.Exit(0);
                     var dirDialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
                     dirDialog.Description = "Selectionnez le répertoire Minecraft";
+                    dirDialog.UseDescriptionForTitle = true;
                     if (dirDialog.ShowDialog().Value)
                     {
                         Preferencies.customDir = true;
                         Preferencies.dirString = dirDialog.SelectedPath;
+                        MCPath = Preferencies.dirString;
                         using (var sw = new StreamWriter(PrefDir))
                         {
                             sw.Write(Newtonsoft.Json.JsonConvert.SerializeObject(Preferencies, Newtonsoft.Json.Formatting.Indented));
