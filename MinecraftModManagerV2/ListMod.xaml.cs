@@ -42,6 +42,16 @@ namespace MinecraftModManagerV2
             if (mod.Infos.description != null)
                 ToolTip = mod.Infos.description;
             UpdateStatus();
+            MouseEnter += (sender, e) =>
+            {
+                if (!linkedMod.Enabled)
+                    modIcon.Source = linkedMod.ActiveIcon;
+            };
+            MouseLeave += (sender, e) =>
+            {
+                if (!linkedMod.Enabled)
+                    modIcon.Source = linkedMod.InactiveIcon;
+            };
         }
 
         #endregion Public Constructors
