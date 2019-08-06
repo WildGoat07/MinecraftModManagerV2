@@ -20,6 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Runtime.InteropServices;
 using Path = System.IO.Path;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
@@ -33,30 +34,60 @@ namespace MinecraftModManagerV2
         #region Public Fields
 
         public static MainWindow App;
+
         public static string BufferDir = Path.Combine(BaseResDir, "where the magic goes");
+
+        public static IntPtr ConsoleHandle = GetConsoleWindow();
+
         public static BitmapImage DefaultActiveModIcon;
+
         public static BitmapImage DefaultInactiveModIcon;
+
         public static BitmapImage hoverCross;
+
         public static BitmapImage hoverMinimize;
+
         public static BitmapImage idleCross;
+
         public static BitmapImage idleMinimize;
+
         public static string LogFile = Path.Combine(BaseResDir, "log.txt");
+
         public static string MCPath;
+
         public static List<Mod> mods;
+
         public static string PrefDir = Path.Combine(BaseResDir, "preferencies.json");
+
         public static Preferencies Preferencies;
+
         public static string ProfilFile = Path.Combine(BaseResDir, "profils.json");
+
         public static List<Profil> profils;
 
         #endregion Public Fields
+
+        #region Private Fields
+
+        private const int SW_HIDE = 0;
+
+        private const int SW_SHOW = 5;
+
+        #endregion Private Fields
 
         #region Public Constructors
 
         public MainWindow()
         {
-            var standardOutput = new StreamWriter(LogFile, true) { AutoFlush = true };
-            Console.SetOut(standardOutput);
-            Console.SetError(standardOutput);
+            if (Environment.GetCommandLineArgs().Length == 1)
+            {
+                HideConsole();
+                var standardOutput = new StreamWriter(LogFile, true) { AutoFlush = true };
+                Console.SetOut(standardOutput);
+                Console.SetError(standardOutput);
+            }
+            else
+                ShowConsole();
             Console.WriteLine(DateTime.Now + "-----------------------------------");
             if (!Directory.Exists(BaseResDir))
                 Directory.CreateDirectory(BaseResDir);
@@ -93,7 +124,7 @@ namespace MinecraftModManagerV2
                     if (command == "help" || command == "h")
                     {
                         Console.WriteLine(
-@"Usage : <exe> [loadprofil|loadmods|disable|enable|help]
+@"Usage : mcmm [loadprofil|loadmods|disable|enable|help]
 Commands :
     loadprofil / lp : loadprofil <profil name>                  Loads the given profil
     loadmods / lm : loadmods <modid> <modid> <modid> ...        Loads the given mods. Giving no mods does the same thing as ""disable""
@@ -237,6 +268,7 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
         #region Public Properties
 
         public static string BaseResDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "mcmm");
+
         public static string DisabledModDir => Path.Combine(MCPath, "disabled mods");
 
         public static string ModDir => Path.Combine(MCPath, "mods");
@@ -275,6 +307,8 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
             }
             return result;
         }
+
+        public static void HideConsole() => ShowWindow(ConsoleHandle, SW_HIDE);
 
         public static Mod LoadMod(Stream fileStream, bool handleGraphics = true)
         {
@@ -496,6 +530,8 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
             return null;
         }
 
+        public static void ShowConsole() => ShowWindow(ConsoleHandle, SW_SHOW);
+
         public static Bitmap ToBitmap(BitmapSource source)
         {
             //https://stackoverflow.com/a/2897325
@@ -623,6 +659,12 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
             }
             return BWbase;
         }
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         private void _scan(bool handleGraphics)
         {
