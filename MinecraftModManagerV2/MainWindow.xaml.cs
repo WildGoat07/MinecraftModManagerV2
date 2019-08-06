@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -32,20 +33,20 @@ namespace MinecraftModManagerV2
         #region Public Fields
 
         public static MainWindow App;
-        public static string BufferDir = "where the magic goes";
+        public static string BufferDir = Path.Combine(BaseResDir, "where the magic goes");
         public static BitmapImage DefaultActiveModIcon;
         public static BitmapImage DefaultInactiveModIcon;
         public static BitmapImage hoverCross;
         public static BitmapImage hoverMinimize;
         public static BitmapImage idleCross;
         public static BitmapImage idleMinimize;
+        public static string LogFile = Path.Combine(BaseResDir, "log.txt");
         public static string MCPath;
         public static List<Mod> mods;
-        public static string PrefDir = "preferencies.json";
+        public static string PrefDir = Path.Combine(BaseResDir, "preferencies.json");
         public static Preferencies Preferencies;
-        public static string ProfilFile = "profils.json";
+        public static string ProfilFile = Path.Combine(BaseResDir, "profils.json");
         public static List<Profil> profils;
-        public static string SelectedMCVersion = "1.12.2";
 
         #endregion Public Fields
 
@@ -53,6 +54,12 @@ namespace MinecraftModManagerV2
 
         public MainWindow()
         {
+            var standardOutput = new StreamWriter(LogFile, true) { AutoFlush = true };
+            Console.SetOut(standardOutput);
+            Console.SetError(standardOutput);
+            Console.WriteLine(DateTime.Now + "-----------------------------------");
+            if (!Directory.Exists(BaseResDir))
+                Directory.CreateDirectory(BaseResDir);
             LoadPreferencies();
             mods = new List<Mod>();
             if (!Directory.Exists(BufferDir))
@@ -61,8 +68,29 @@ namespace MinecraftModManagerV2
                 var lines = Environment.GetCommandLineArgs();
                 if (lines.Length > 1)
                 {
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        var newstr = "";
+                        foreach (var c in lines[i])
+                        {
+                            if (c != ' ' && c != '\t')
+                                newstr += c;
+                        }
+                        lines[i] = newstr;
+                    }
                     var command = lines[1];
-                    if (command == "help" || command == "?")
+                    var arguments = lines.Where((s, i) => i >= 2).ToArray();
+                    if (command.Length >= 5 && command.Substring(0, 5) == "mcmm:")
+                    {
+                        var data = command.Substring(5);
+                        var splittedData = data.Split('?');
+                        command = splittedData.First();
+                        if (splittedData.Length > 1)
+                            arguments = splittedData.Last().Split('&');
+                        else
+                            arguments = new string[0];
+                    }
+                    if (command == "help" || command == "h")
                     {
                         Console.WriteLine(
 @"Usage : <exe> [loadprofil|loadmods|disable|enable|help]
@@ -71,15 +99,18 @@ Commands :
     loadmods / lm : loadmods <modid> <modid> <modid> ...        Loads the given mods. Giving no mods does the same thing as ""disable""
     disable / d : disable                                       Disable all mods
     enable / e : enable                                         Enable all mods
-    help / ? : help                                             Displays this section
+    help / h : help                                             Displays this section
+
+URI scheme :
+mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
 ");
                         Environment.Exit(0);
                     }
                     else if (command == "loadprofil" || command == "lp")
                     {
-                        if (lines.Length > 2)
+                        if (arguments.Length > 0)
                         {
-                            var profilString = lines[2];
+                            var profilString = arguments[0];
                             LoadProfils();
                             var profil = profils.Find((p) => p.name == profilString);
                             if (profil.name == null)
@@ -122,8 +153,8 @@ Commands :
                     else if (command == "loadmods" || command == "lm")
                     {
                         var modsString = new List<string>();
-                        for (int i = 2; i < lines.Length; i++)
-                            modsString.Add(lines[i]);
+                        for (int i = 0; i < arguments.Length; i++)
+                            modsString.Add(arguments[i]);
                         _scan(false);
                         int added = 0, removed = 0;
                         foreach (var mod in mods)
@@ -205,6 +236,7 @@ Commands :
 
         #region Public Properties
 
+        public static string BaseResDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "mcmm");
         public static string DisabledModDir => Path.Combine(MCPath, "disabled mods");
 
         public static string ModDir => Path.Combine(MCPath, "mods");
@@ -347,21 +379,18 @@ Commands :
                 triggerError(file.Name);
                 mod.Infos = new ModInfo() { name = Path.GetFileNameWithoutExtension(file.Name), modid = "//" + Path.GetFileNameWithoutExtension(file.Name) };
             }
-            if (handleGraphics)
+            try
             {
-                try
-                {
-                    Bitmap logo = new Bitmap(archive.GetEntry(mod.Infos.logoFile).Open());
-                    mod.ActiveIcon = ToBitmapImage(logo);
-                    mod.InactiveIcon = ToBitmapImage(CreateBWBitmap(logo));
-                    mod.Background = ToBitmapImage(GenerateBackground(logo));
-                }
-                catch (Exception)
-                {
-                    mod.ActiveIcon = DefaultActiveModIcon;
-                    mod.InactiveIcon = DefaultInactiveModIcon;
-                    mod.Background = null;
-                }
+                Bitmap logo = new Bitmap(archive.GetEntry(mod.Infos.logoFile).Open());
+                mod.ActiveIcon = ToBitmapImage(logo);
+                mod.InactiveIcon = ToBitmapImage(CreateBWBitmap(logo));
+                mod.Background = ToBitmapImage(GenerateBackground(logo));
+            }
+            catch (Exception)
+            {
+                mod.ActiveIcon = DefaultActiveModIcon;
+                mod.InactiveIcon = DefaultInactiveModIcon;
+                mod.Background = null;
             }
             return mod;
         }
@@ -386,7 +415,7 @@ Commands :
                 var buff = new JSONModBuffer();
                 buff.infos = mod.Infos;
                 buff.dependencies = mod.Dependencies.ToArray();
-                if (mod.ActiveIcon != DefaultActiveModIcon && handleGraphics)
+                if (mod.ActiveIcon != DefaultActiveModIcon)
                 {
                     var encoder = new PngBitmapEncoder();
                     encoder.Frames.Add(BitmapFrame.Create(mod.ActiveIcon));
@@ -419,11 +448,10 @@ Commands :
                     buff.inactiveIcon = "";
                     buff.backgroundImage = "";
                 }
-                if (handleGraphics)
-                    using (var stream = new StreamWriter(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
-                    {
-                        stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(buff, Newtonsoft.Json.Formatting.Indented));
-                    }
+                using (var stream = new StreamWriter(Path.Combine(BufferDir, Path.GetFileNameWithoutExtension(mod.Filename) + ".json")))
+                {
+                    stream.Write(Newtonsoft.Json.JsonConvert.SerializeObject(buff, Newtonsoft.Json.Formatting.Indented));
+                }
                 return mod;
             }
         }
@@ -583,7 +611,7 @@ Commands :
 
         private static Bitmap CreateBWBitmap(Bitmap bitmap)
         {
-            System.Drawing.Bitmap BWbase = new System.Drawing.Bitmap(bitmap.Width, bitmap.Height);
+            Bitmap BWbase = new Bitmap(bitmap.Width, bitmap.Height);
             for (int x = 0; x < BWbase.Width; x++)
             {
                 for (int y = 0; y < BWbase.Height; y++)
@@ -598,6 +626,7 @@ Commands :
 
         private void _scan(bool handleGraphics)
         {
+            Console.WriteLine("Scanning mods...");
             int maxItems = Directory.GetFiles(ModDir).Where((file) => Path.GetExtension(file) == ".jar" || Path.GetExtension(file) == ".zip").Count() + Directory.GetFiles(DisabledModDir).Where((file) => Path.GetExtension(file) == ".jar" || Path.GetExtension(file) == ".zip").Count();
 
             int currentItem = 0;
@@ -612,7 +641,7 @@ Commands :
                     }
                     if (Path.GetExtension(file) == ".jar" || Path.GetExtension(file) == ".zip")
                     {
-                        var mod = LoadModFromFile(file);
+                        var mod = LoadModFromFile(file, handleGraphics);
                         mod.Enabled = enabled;
                         mod.Filename = Path.GetFileName(file);
                         mods.Add(mod);
@@ -622,6 +651,7 @@ Commands :
             }
             scanFiles(ModDir, true);
             scanFiles(DisabledModDir, false);
+            Console.WriteLine(mods.Count + " mod(s) found");
             mods.Sort((left, right) => left.Infos.name.CompareTo(right.Infos.name));
             if (handleGraphics)
                 Dispatcher.Invoke(() =>
