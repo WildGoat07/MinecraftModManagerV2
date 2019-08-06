@@ -46,12 +46,15 @@ namespace MinecraftModManagerV2
             }
             else
                 defaultMCDir.IsChecked = true;
-            parent.Closed += (sender, e) =>
+            parent.Closing += (sender, e) =>
             {
                 if (oldPref != MainWindow.Preferencies)
                 {
-                    Process.Start(Process.GetCurrentProcess().MainModule.FileName);
-                    Environment.Exit(0);
+                    var dialog = new BaseModel("Redémarrage requis");
+                    dialog.Owner = parent;
+                    var warning = new WarningControl("Le logiciel doit redémarrer pour appliquer les changements.", dialog);
+                    dialog.Child = warning;
+                    dialog.ShowDialog();
                 }
             };
             updateBuffCleanerDisplay();

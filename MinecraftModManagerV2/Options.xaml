@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:MinecraftModManagerV2"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <TabControl Margin="0, 20, 0, 0" BorderThickness="0" Background="#00000000">
+    <TabControl BorderThickness="0" Background="#00000000">
         <TabControl.Resources>
             <Style TargetType="TabItem">
                 <Setter Property="Template">

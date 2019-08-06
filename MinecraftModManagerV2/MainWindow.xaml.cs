@@ -598,7 +598,7 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
                 MCPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
                 if (!Directory.Exists(MCPath))
                 {
-                    var dialog = new BaseModel();
+                    var dialog = new BaseModel("Erreur de chargement");
                     var warning = new WarningControl("Le chemin vers le dossier Minecraft est incorrect, veuillez spécifier le chemin", dialog);
                     dialog.Child = warning;
                     if (!dialog.ShowDialog().Value)

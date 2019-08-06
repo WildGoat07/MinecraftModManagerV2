@@ -15,6 +15,7 @@
     </Window.Foreground>
     <Grid>
         <Rectangle Fill="#FF12222C" Margin="0,20,0,0" Stroke="White" />
+        <TextBlock Name="titleText" Foreground="White" Text="Title" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,25,0,0" FontFamily="Segoe UI Light" FontSize="14" />
         <Image HorizontalAlignment="Right" VerticalAlignment="Top" Source="topleftCorner.png" Height="21" Width="90" Stretch="Fill" />
         <Rectangle MouseLeftButtonDown="Rectangle_MouseLeftButtonDown">
             <Rectangle.Fill>
@@ -23,6 +24,7 @@
         </Rectangle>
         <Image Name="cross" HorizontalAlignment="Right" Margin="0,0,10,0" Height="20" VerticalAlignment="Top" Width="20" MouseEnter="Cross_MouseEnter" MouseLeave="Cross_MouseLeave" MouseLeftButtonDown="Cross_MouseLeftButtonDown" />
         <Image Name="minim" HorizontalAlignment="Right" Margin="0,0,50,0" Height="20" VerticalAlignment="Top" Width="20" Source="idleMinimize.png" MouseEnter="Minim_MouseEnter" MouseLeave="Minim_MouseLeave" MouseLeftButtonDown="Minim_MouseLeftButtonDown" />
-        <Grid Name="Placeholder" Margin="0,20,0,0" />
+
+        <Grid Name="Placeholder" Margin="0,50,0,0" />
     </Grid>
 </Window>

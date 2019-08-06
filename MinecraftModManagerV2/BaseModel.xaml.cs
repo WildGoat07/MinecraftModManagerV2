@@ -28,10 +28,12 @@ namespace MinecraftModManagerV2
 
         #region Public Constructors
 
-        public BaseModel(bool closeAvailable = true)
+        public BaseModel(string title, bool closeAvailable = true)
         {
             canClose = closeAvailable;
             InitializeComponent();
+            titleText.Text = title;
+            Title = title;
             if (canClose)
                 cross.Source = MainWindow.idleCross;
             else

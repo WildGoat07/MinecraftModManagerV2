@@ -66,8 +66,7 @@ namespace MinecraftModManagerV2
         {
             var profil = new Profil();
             profil.modids = MainWindow.mods.Where((m) => m.Enabled).Select((m) => m.Infos.modid).ToArray();
-            var window = new BaseModel();
-            window.Title = "Profils";
+            var window = new BaseModel("Profils");
             window.Height = 0;
             window.Width = 0;
             var selector = new SelectProfilName(window, "Nouveau profil");
@@ -186,7 +185,7 @@ namespace MinecraftModManagerV2
             if (dialog.ShowDialog(MainWindow.App) == true)
             {
                 var progress = new LoadingPage();
-                var displayProgress = new BaseModel(false);
+                var displayProgress = new BaseModel("Chargement...", false);
                 displayProgress.Child = progress;
                 displayProgress.Owner = MainWindow.App;
                 Task.Factory.StartNew(() =>
@@ -230,8 +229,7 @@ namespace MinecraftModManagerV2
 
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
-            var window = new BaseModel();
-            window.Title = "Paramètres";
+            var window = new BaseModel("Paramètres");
             window.Child = new Options(window);
             window.ShowDialog();
             UpdateProfilsList();

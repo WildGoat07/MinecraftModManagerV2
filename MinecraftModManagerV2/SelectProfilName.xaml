@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <ScrollViewer  Margin="0, 30, 0, 40">
+        <ScrollViewer  Margin="0, 0, 0, 40">
             <StackPanel Name="pannel" />
         </ScrollViewer>
         <TextBox Name="inputName" TextWrapping="Wrap" VerticalAlignment="Bottom" Background="#FF323232" Foreground="White" SelectionBrush="#FF838383" FontFamily="Segoe UI Light" FontSize="14" Margin="10,0,117,10" />
