@@ -91,6 +91,10 @@ namespace MinecraftModManagerV2
             Console.WriteLine(DateTime.Now + "-----------------------------------");
             if (!Directory.Exists(BaseResDir))
                 Directory.CreateDirectory(BaseResDir);
+            idleCross = ToBitmapImage(Properties.Resources.idleCross);
+            hoverCross = ToBitmapImage(Properties.Resources.hoverCross);
+            idleMinimize = ToBitmapImage(Properties.Resources.idleMinimize);
+            hoverMinimize = ToBitmapImage(Properties.Resources.hoverMinimize);
             LoadPreferencies();
             mods = new List<Mod>();
             if (!Directory.Exists(BufferDir))
@@ -252,10 +256,6 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
                 }
             }
             App = this;
-            idleCross = ToBitmapImage(Properties.Resources.idleCross);
-            hoverCross = ToBitmapImage(Properties.Resources.hoverCross);
-            idleMinimize = ToBitmapImage(Properties.Resources.idleMinimize);
-            hoverMinimize = ToBitmapImage(Properties.Resources.hoverMinimize);
             DefaultActiveModIcon = ToBitmapImage(Properties.Resources.javaIcon);
             DefaultInactiveModIcon = ToBitmapImage(CreateBWBitmap(Properties.Resources.javaIcon));
             InitializeComponent();
