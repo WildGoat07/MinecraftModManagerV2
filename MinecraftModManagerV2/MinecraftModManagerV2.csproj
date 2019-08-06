@@ -213,7 +213,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="applyChanges.png" />
-    <Resource Include="discardChanges.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="options.png" />
