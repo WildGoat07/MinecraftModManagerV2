@@ -444,7 +444,9 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
                 catch (Exception) { }
             }
             {
-                var mod = LoadMod(new FileStream(file, FileMode.Open, FileAccess.Read));
+                Mod mod;
+                using (var stream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                    mod = LoadMod(stream, handleGraphics);
                 mod.Filename = Path.GetFileName(file);
                 var buff = new JSONModBuffer();
                 buff.infos = mod.Infos;
