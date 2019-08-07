@@ -256,6 +256,7 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
                 }
             }
             App = this;
+            CheckForUpdate();
             DefaultActiveModIcon = ToBitmapImage(Properties.Resources.javaIcon);
             DefaultInactiveModIcon = ToBitmapImage(CreateBWBitmap(Properties.Resources.javaIcon));
             InitializeComponent();
@@ -559,7 +560,7 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
             //https://stackoverflow.com/a/23831231
             using (var memory = new MemoryStream())
             {
-                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
+                bitmap.Save(memory, ImageFormat.Png);
                 memory.Position = 0;
 
                 var bitmapImage = new BitmapImage();
@@ -571,6 +572,25 @@ mcmm:<command>[?<argument1>&<argument2>&<argument3>...]
 
                 return bitmapImage;
             }
+        }
+
+        public async Task CheckForUpdate()
+        {
+            try
+            {
+                var github = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("MinecraftModManagerV2"));
+                var lastRelease = await github.Repository.Release.GetLatest(200534236);
+                var current = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+                if (new Version(lastRelease.TagName) > current)
+                {
+                    var dialog = new BaseModel("Nouvelle version disponible");
+                    var warning = new WarningControl("Une nouvelle version de MCMM est disponible. Cliquez sur OK pour mettre à jour", dialog);
+                    dialog.Child = warning;
+                    if (dialog.ShowDialog().Value)
+                        Process.Start(lastRelease.HtmlUrl);
+                }
+            }
+            catch (Exception) { }
         }
 
         public void LoadPreferencies()
