@@ -82,7 +82,16 @@ namespace MinecraftModManagerV2
             if (Environment.GetCommandLineArgs().Length == 1)
             {
                 HideConsole();
-                var standardOutput = new StreamWriter(LogFile, true) { AutoFlush = true };
+                TextWriter standardOutput = null;
+                try
+                {
+                    standardOutput = new StreamWriter(LogFile, true) { AutoFlush = true };
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    Directory.CreateDirectory(BaseResDir);
+                    standardOutput = new StreamWriter(LogFile, true) { AutoFlush = true };
+                }
                 Console.SetOut(standardOutput);
                 Console.SetError(standardOutput);
             }
